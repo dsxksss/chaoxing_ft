@@ -43,9 +43,9 @@ class AppNavigation {
     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
-  /// Navigate to course list
+  /// Navigate to course list (replace login page)
   static void goToCourseList(BuildContext context) {
-    Navigator.of(context).pushNamed(AppRoutes.courseList);
+    Navigator.of(context).pushReplacementNamed(AppRoutes.courseList);
   }
 
   /// Navigate to task list

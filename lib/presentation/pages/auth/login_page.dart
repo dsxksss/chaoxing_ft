@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chaoxing_ft/presentation/widgets/app_components.dart';
+import 'package:chaoxing_ft/presentation/widgets/disclaimer_dialog.dart';
 import 'package:chaoxing_ft/presentation/providers/auth_provider.dart';
 import 'package:chaoxing_ft/app/routes.dart';
 
@@ -23,6 +24,11 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     _usernameController.text = '19807974919';
     _passwordController.text = 'dsxk2546650292';
+    
+    // 页面加载完成后显示贡献声明对话框
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DisclaimerDialog.showIfNeeded(context);
+    });
   }
 
   Future<void> _handleLogin() async {

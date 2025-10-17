@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:chaoxing_ft/presentation/widgets/app_components.dart';
 import 'package:chaoxing_ft/presentation/providers/course_provider.dart';
 import 'package:chaoxing_ft/presentation/providers/task_provider.dart';
+import 'package:chaoxing_ft/presentation/providers/auth_provider.dart';
 import 'package:chaoxing_ft/domain/entities/task.dart';
 import 'package:chaoxing_ft/services/task/task_executor_service.dart';
 import 'package:chaoxing_ft/core/session/session_manager.dart';
@@ -13,6 +14,7 @@ import 'package:chaoxing_ft/data/datasources/local/hive_datasource.dart';
 import 'package:chaoxing_ft/data/repositories/task_repository_impl.dart';
 import 'package:chaoxing_ft/core/crypto/aes_cipher.dart';
 import 'package:chaoxing_ft/core/errors/error_handler.dart';
+import 'package:chaoxing_ft/app/routes.dart';
 import 'package:logger/logger.dart';
 
 /// Course list page UI
@@ -167,21 +169,67 @@ class _CourseListPageState extends State<CourseListPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('课程作业'),
-        centerTitle: true,
+  /// 退出确认对话框
+  Future<bool> _showExitConfirmDialog() async {
+    return await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('确认退出'),
+        content: const Text('确定要退出登录吗？'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshCourses,
+          TextButton(
+            child: const Text('取消'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          TextButton(
+            child: const Text('退出', style: TextStyle(color: Colors.red)),
+            onPressed: () => Navigator.of(context).pop(true),
           ),
         ],
       ),
-      body: Consumer<CourseProvider>(
-        builder: (context, courseProvider, child) {
+    ) ?? false;
+  }
+
+  /// 处理退出登录
+  Future<void> _handleLogout() async {
+    final confirmed = await _showExitConfirmDialog();
+    if (!confirmed) return;
+
+    // 清除会话
+    _sessionManager.clearSession();
+    
+    // 清除认证状态
+    if (mounted) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.logout();
+      
+      // 返回登录页
+      AppNavigation.goToLogin(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: _showExitConfirmDialog,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('课程作业'),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: '退出登录',
+            onPressed: _handleLogout,
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _refreshCourses,
+            ),
+          ],
+        ),
+        body: Consumer<CourseProvider>(
+          builder: (context, courseProvider, child) {
           if (courseProvider.isLoading) {
             return AppComponents.loadingIndicator(message: '正在加载课程...');
           }
@@ -221,7 +269,7 @@ class _CourseListPageState extends State<CourseListPage> {
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 120,
+                      height: 160,  // 增加高度以显示更多内容
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: courseProvider.courses.length,
@@ -230,7 +278,7 @@ class _CourseListPageState extends State<CourseListPage> {
                           final isSelected = _selectedCourseId == course.id;
                           
                           return Container(
-                            width: 200,
+                            width: 240,  // 增加宽度以容纳更长的文本
                             margin: const EdgeInsets.only(right: 12),
                             child: AppComponents.customCard(
                               child: InkWell(
@@ -240,41 +288,62 @@ class _CourseListPageState extends State<CourseListPage> {
                                   padding: const EdgeInsets.all(12),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
+                                      // 课程名称区域
                                       Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Expanded(
                                             child: Text(
                                               course.name,
                                               style: TextStyle(
-                                                fontSize: 14,
+                                                fontSize: 15,  // 稍微增大字体
                                                 fontWeight: FontWeight.bold,
-                                                color: isSelected ? Colors.blue : null,
+                                                color: isSelected ? Colors.blue : Colors.black87,
+                                                height: 1.3,  // 行高
                                               ),
-                                              maxLines: 2,
+                                              maxLines: 3,  // 增加到3行
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
+                                          const SizedBox(width: 8),
                                           if (isSelected)
                                             const Icon(
                                               Icons.check_circle,
                                               color: Colors.blue,
-                                              size: 16,
+                                              size: 20,
                                             ),
                                         ],
                                       ),
-                                      const SizedBox(height: 4),
-                                      Expanded(
-                                        child: Text(
-                                          course.teacher ?? '未知教师',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.grey,
+                                      const SizedBox(height: 8),
+                                      // 教师信息区域
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.person_outline,
+                                                size: 14,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  course.teacher ?? '未知教师',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey,
+                                                    height: 1.2,
+                                                  ),
+                                                  maxLines: 2,  // 允许教师名称显示2行
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -306,6 +375,7 @@ class _CourseListPageState extends State<CourseListPage> {
             ],
           );
         },
+        ),
       ),
     );
   }
@@ -316,9 +386,23 @@ class _CourseListPageState extends State<CourseListPage> {
     }
 
     if (_courseTasks.isEmpty) {
-      return AppComponents.emptyState(
-        message: '该课程暂无作业',
-        icon: Icons.assignment_outlined,
+      // 空状态也支持下拉刷新
+      return RefreshIndicator(
+        onRefresh: () async {
+          if (_selectedCourseId != null) {
+            await _loadCourseTasks(_selectedCourseId!);
+          }
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: 400,  // 确保有足够的高度来触发下拉
+            child: AppComponents.emptyState(
+              message: '该课程暂无作业',
+              icon: Icons.assignment_outlined,
+            ),
+          ),
+        ),
       );
     }
 
@@ -481,56 +565,64 @@ class _CourseListPageState extends State<CourseListPage> {
               
               // 任务列表
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _courseTasks.length,
-                  itemBuilder: (context, index) {
-                    final task = _courseTasks[index];
-                    return AppComponents.customCard(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            Icon(
-                              _getTaskIcon(task.type),
-                              color: task.isCompleted ? Colors.green : Colors.orange,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    task.name,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${task.type.displayName} • ${task.status}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (task.isCompleted)
-                              const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                                size: 20,
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    if (_selectedCourseId != null) {
+                      await _loadCourseTasks(_selectedCourseId!);
+                    }
                   },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    physics: const AlwaysScrollableScrollPhysics(),  // 确保即使内容不足也能下拉
+                    itemCount: _courseTasks.length,
+                    itemBuilder: (context, index) {
+                      final task = _courseTasks[index];
+                      return AppComponents.customCard(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _getTaskIcon(task.type),
+                                color: task.isCompleted ? Colors.green : Colors.orange,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      task.name,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${task.type.displayName} • ${task.status}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (task.isCompleted)
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                  size: 20,
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
