@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// 贡献声明对话框
+/// 项目声明对话框
 class DisclaimerDialog extends StatefulWidget {
   const DisclaimerDialog({super.key});
 
@@ -85,7 +85,7 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
             ),
           ),
           const TextSpan(
-            text: '本项目提供了一个全平台的操作GUI界面，方便使用者直接使用，由于是重写实现，因此与原项目在代码层面完全不同。',
+            text: '本项目提供了一个全平台的操作GUI界面，方便使用者直接使用，由于是重写实现，因此与原项目在代码层面完全不同，还有答题功能以及题库功能待完善，目前仅支持刷视频部分功能。\n\n',
           ),
         ],
       ),
@@ -104,7 +104,7 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
           ),
           const SizedBox(width: 12),
           const Text(
-            '贡献声明',
+            '项目声明',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -112,48 +112,40 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
           ),
         ],
       ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 主要内容
-            _buildContent(),
-            const SizedBox(height: 20),
-            
-            // 分隔线
-            const Divider(),
-            
-            // "不再显示"复选框
-            CheckboxListTile(
-              value: _dontShowAgain,
-              onChanged: (value) {
-                setState(() {
-                  _dontShowAgain = value ?? false;
-                });
-              },
-              title: const Text(
-                '不再显示此声明',
-                style: TextStyle(fontSize: 14),
+      content: SizedBox(
+        width: 500,  // 设置固定宽度
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 主要内容
+              _buildContent(),
+              const SizedBox(height: 20),
+              
+              // 分隔线
+              const Divider(),
+              
+              // "不再显示"复选框
+              CheckboxListTile(
+                value: _dontShowAgain,
+                onChanged: (value) {
+                  setState(() {
+                    _dontShowAgain = value ?? false;
+                  });
+                },
+                title: const Text(
+                  '不再显示此声明',
+                  style: TextStyle(fontSize: 14),
+                ),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
               ),
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: [
-        // 查看原项目按钮
-        TextButton.icon(
-          onPressed: _openGitHubLink,
-          icon: const Icon(Icons.open_in_new, size: 18),
-          label: const Text('查看原项目'),
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.grey[700],
-          ),
-        ),
-        const Spacer(),
-        
         // 确认按钮
         ElevatedButton(
           onPressed: () async {
@@ -163,7 +155,7 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
             }
           },
           style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
             backgroundColor: Theme.of(context).primaryColor,
             foregroundColor: Colors.white,
           ),
