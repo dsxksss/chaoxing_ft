@@ -8,6 +8,11 @@ import 'package:chaoxing_ft/services/task/task_executor_service.dart';
 import 'package:chaoxing_ft/core/session/session_manager.dart';
 import 'package:chaoxing_ft/services/task/task_learning_service.dart';
 import 'package:chaoxing_ft/services/video/video_learning_service.dart';
+import 'package:chaoxing_ft/data/datasources/remote/chaoxing_api_datasource.dart';
+import 'package:chaoxing_ft/data/datasources/local/hive_datasource.dart';
+import 'package:chaoxing_ft/data/repositories/task_repository_impl.dart';
+import 'package:chaoxing_ft/core/crypto/aes_cipher.dart';
+import 'package:chaoxing_ft/core/errors/error_handler.dart';
 import 'package:logger/logger.dart';
 
 /// Course list page UI
@@ -32,6 +37,8 @@ class _CourseListPageState extends State<CourseListPage> {
   late final SessionManager _sessionManager;
   late final TaskLearningService _taskLearningService;
   late final VideoLearningService _videoLearningService;
+  late final ChaoxingApiDataSource _apiDataSource;
+  late final TaskRepositoryImpl _taskRepository;
   late final Logger _logger;
 
   @override
@@ -42,10 +49,23 @@ class _CourseListPageState extends State<CourseListPage> {
     _sessionManager = SessionManager.instance;
     _taskLearningService = TaskLearningService(_sessionManager, Logger());
     _videoLearningService = VideoLearningService(_sessionManager, Logger());
+    _apiDataSource = ChaoxingApiDataSource(
+      _sessionManager,
+      AESCipher.instance,
+      ErrorHandler.instance,
+    );
+    _taskRepository = TaskRepositoryImpl(
+      HiveDataSource.instance,
+      _apiDataSource,
+      _sessionManager,
+      ErrorHandler.instance,
+    );
     _logger = Logger();
     _taskExecutorService = TaskExecutorService(
       _taskLearningService,
       _videoLearningService,
+      _apiDataSource,
+      _taskRepository,
       _logger,
     );
     

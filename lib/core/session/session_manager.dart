@@ -64,7 +64,22 @@ class SessionManager {
   void _setupInterceptors() {
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        // Dio will automatically use the Cookie header set in options.headers
+        // 在每次请求前强制同步Cookie,确保最新的Cookie被发送
+        final cookieHeader = _cookies.entries
+            .map((e) => '${e.key}=${e.value}')
+            .join('; ');
+        
+        // 直接设置到options.headers,确保覆盖任何旧值
+        if (cookieHeader.isNotEmpty) {
+          options.headers['Cookie'] = cookieHeader;
+          _logger.d('请求拦截器: 同步Cookie到请求');
+          _logger.d('  Cookie keys: ${_cookies.keys.toList()}');
+          _logger.d('  Cookie包含jrose: ${_cookies.containsKey("jrose")}');
+          if (_cookies.containsKey('jrose')) {
+            _logger.d('  jrose value: ${_cookies["jrose"]}');
+          }
+        }
+        
         handler.next(options);
       },
       onResponse: (response, handler) {
@@ -82,6 +97,7 @@ class SessionManager {
   void _extractCookiesFromResponse(Response response) {
     final setCookieHeaders = response.headers['set-cookie'];
     if (setCookieHeaders != null) {
+      bool updated = false;
       for (final setCookie in setCookieHeaders) {
         final parts = setCookie.split(';');
         if (parts.isNotEmpty) {
@@ -92,12 +108,19 @@ class SessionManager {
             if (value.isNotEmpty) {
               _cookies[key] = value;
               _logger.d('Updated cookie from response: $key=$value');
+              if (key == 'jrose') {
+                _logger.d('  ✅ jrose Cookie已更新!');
+              }
+              updated = true;
             }
           }
         }
       }
-      // Update Cookie header for future requests
-      updateCookies({});
+      // 立即同步更新的Cookie到dio headers
+      if (updated) {
+        _logger.d('Cookie提取完成,准备同步...');
+        _syncCookiesToDio();
+      }
     }
   }
 
@@ -110,15 +133,26 @@ class SessionManager {
   /// Update cookies (replicates chaoxing_py cookie management)
   void updateCookies(Map<String, String> cookies) {
     _cookies.addAll(cookies);
-    _dio.options.headers['Cookie'] = _cookies.entries
-        .map((e) => '${e.key}=${e.value}')
-        .join('; ');
-    _logger.d('Updated cookies: $_cookies');
+    _syncCookiesToDio();
     
     // Auto-save cookies to storage if session is active
     if (_isActive && _sessionId != null) {
       saveSessionToStorage();
     }
+  }
+  
+  /// 同步Cookie到Dio headers (确保立即生效)
+  void _syncCookiesToDio() {
+    _logger.d('_syncCookiesToDio 调用 - _cookies包含jrose: ${_cookies.containsKey("jrose")}');
+    if (_cookies.containsKey('jrose')) {
+      _logger.d('  jrose值: ${_cookies["jrose"]}');
+    }
+    
+    final cookieHeader = _cookies.entries
+        .map((e) => '${e.key}=${e.value}')
+        .join('; ');
+    _dio.options.headers['Cookie'] = cookieHeader;
+    _logger.d('Synced cookies to Dio: $_cookies');
   }
 
   /// Update headers
@@ -255,6 +289,11 @@ class SessionManager {
     }
     _logger.w('Cannot get UID from cookies');
     return null;
+  }
+  
+  /// Get all cookies (for debugging)
+  Map<String, String> getAllCookies() {
+    return Map.from(_cookies);
   }
 
   /// Get current timestamp (replicates chaoxing_py get_timestamp)

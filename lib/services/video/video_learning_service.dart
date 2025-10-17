@@ -130,9 +130,31 @@ class VideoLearningService {
       'Content-Type': 'application/json',
     };
     // 不添加Origin,完全按照Python版本
-
+    
     final url = 'https://mooc1.chaoxing.com/mooc-ans/multimedia/log/a/'
         '${course['cpi']}/$dtoken';
+    
+    // 确保Cookie在请求前是最新的
+    _sessionManager.updateCookies({});
+    
+    _logger.d('准备发送进度上报请求...');
+    _logger.d('URL: $url');
+    _logger.d('Params: $params');
+    _logger.d('Headers: $requestHeaders');
+    // 打印当前完整的Cookie状态
+    final currentCookie = _sessionManager.dio.options.headers['Cookie'];
+    _logger.d('当前Cookie: $currentCookie');
+    
+    // 检查关键Cookie字段
+    final allCookies = _sessionManager.getAllCookies();
+    final criticalCookies = ['_uid', 'UID', 'fid', 'jrose', 'JSESSIONID'];
+    for (final key in criticalCookies) {
+      if (allCookies.containsKey(key)) {
+        _logger.d('✓ Cookie[$key] = ${allCookies[key]}');
+      } else {
+        _logger.w('✗ Cookie[$key] 缺失');
+      }
+    }
 
     Response? response;
 
@@ -149,8 +171,12 @@ class VideoLearningService {
           options: Options(
             headers: requestHeaders,
             validateStatus: (status) => status != null && status < 500,
+            // 确保不删除默认headers
+            extra: {'merge_headers': true},
           ),
         );
+        
+        _logger.d('请求完成 - statusCode: ${response.statusCode}');
       } catch (e) {
         _logger.e('Request failed with rt=$rt: $e');
         return {'isPassed': false, 'statusCode': 0};
@@ -170,6 +196,8 @@ class VideoLearningService {
             options: Options(
               headers: requestHeaders,
               validateStatus: (status) => status != null && status < 500,
+              // 确保不删除默认headers
+              extra: {'merge_headers': true},
             ),
           );
 
@@ -218,6 +246,11 @@ class VideoLearningService {
       _logger.e('请求url: ${response.requestOptions.uri}');
       final headersToLog = {..._sessionManager.dio.options.headers, ...requestHeaders};
       _logger.e('请求头: $headersToLog');
+      
+      // 打印当前cookie状态，检查是否包含jrose
+      final cookieHeader = _sessionManager.dio.options.headers['Cookie'];
+      _logger.e('当前Cookie头: $cookieHeader');
+      
       return {'isPassed': false, 'statusCode': 403};
     }
 
@@ -225,6 +258,11 @@ class VideoLearningService {
     _logger.e('请求url: ${response.requestOptions.uri}');
     final headersToLog = {..._sessionManager.dio.options.headers, ...requestHeaders};
     _logger.e('请求头: $headersToLog');
+    
+    // 打印当前cookie状态
+    final cookieHeader = _sessionManager.dio.options.headers['Cookie'];
+    _logger.e('当前Cookie头: $cookieHeader');
+    
     return {'isPassed': false, 'statusCode': response.statusCode};
   }
 
@@ -427,11 +465,6 @@ class VideoLearningService {
           passed = result['isPassed'] as bool;
           
           _logger.i('上报结果 - statusCode: $statusCode, isPassed: $passed');
-          
-          // 调用进度回调
-          if (onProgress != null) {
-            onProgress(job['name'] ?? 'Unknown Video', playTime / duration);
-          }
 
           if (statusCode == 403) {
             if (forbiddenRetry >= maxForbiddenRetry) {
@@ -491,6 +524,12 @@ class VideoLearningService {
         lastIter = currentTime;
         // Python: play_time = min(duration, play_time+dt)
         playTime = min(duration, playTime + dt.toInt());
+        
+        // 💡 更新playTime后，实时更新UI进度条（每秒更新）
+        if (onProgress != null) {
+          final currentProgress = duration > 0 ? playTime / duration : 0.0;
+          onProgress(job['name'] ?? 'Unknown Video', currentProgress);
+        }
 
         // Python: time.sleep(gc.THRESHOLD) - THRESHOLD = 1 second
         await Future.delayed(const Duration(seconds: 1));

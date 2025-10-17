@@ -1,8 +1,12 @@
 import 'package:logger/logger.dart';
+import 'package:logger/logger.dart';
+
 import '../../core/errors/study_result.dart';
 import '../../services/task/task_learning_service.dart';
 import '../../services/video/video_learning_service.dart';
 import '../../domain/entities/task.dart';
+import '../../data/datasources/remote/chaoxing_api_datasource.dart';
+import '../../domain/repositories/task_repository.dart';
 
 /// Task executor service - handles task execution logic
 /// Replicates chaoxing_py process_course and process_chapter flow
@@ -10,10 +14,14 @@ class TaskExecutorService {
   TaskExecutorService(
     this._taskLearningService,
     this._videoLearningService,
+    this._apiDataSource,
+    this._taskRepository,
     this._logger,
   );
   final TaskLearningService _taskLearningService;
   final VideoLearningService _videoLearningService;
+  final ChaoxingApiDataSource _apiDataSource;
+  final TaskRepository _taskRepository;
   final Logger _logger;
 
   /// Execute all tasks for a course
@@ -197,6 +205,15 @@ class TaskExecutorService {
 
       if (result == StudyResult.success) {
         _logger.i('任务执行成功: ${task.name}');
+        
+        // 标记任务为已完成
+        try {
+          await _taskRepository.markTaskAsCompleted(task.id);
+          _logger.i('任务状态已更新为完成: ${task.name}');
+        } catch (e) {
+          _logger.w('更新任务完成状态失败: $e');
+        }
+        
         return {'success': true, 'message': '任务执行成功'};
       } else {
         _logger.w('任务执行失败: ${task.name}');
@@ -356,15 +373,40 @@ class TaskExecutorService {
   }
 
   /// Get course information
+  /// 从API获取真实的课程数据（包括clazzId和cpi）
+  /// clazzId和courseId是不同的值，必须从课程列表HTML中解析获取，不能混用
   Future<Map<String, dynamic>> _getCourseInfo(String courseId) async {
-    // 从任务数据中提取课程信息
-    // TODO: 这里应该从实际的课程数据中获取，而不是硬编码
-    // clazzId和courseId是不同的，必须从课程列表中HTML解析获取
-    return {
-      'courseId': courseId,
-      'clazzId': '63734834', // 从浏览器请求中获取的正确值
-      'cpi': '203325098',
-    };
+    try {
+      _logger.d('获取课程信息: courseId=$courseId');
+      
+      // 从API获取完整的课程列表
+      final courses = await _apiDataSource.getCourseList();
+      _logger.d('课程列表获取成功，共${courses.length}门课程');
+      
+      // 查找匹配的课程（支持通过courseId或id查找）
+      final course = courses.firstWhere(
+        (c) => c['courseId'] == courseId || c['id'] == courseId,
+        orElse: () {
+          _logger.e('课程未找到: $courseId');
+          _logger.e('可用的课程: ${courses.map((c) => '${c['id']}:${c['courseId']}').join(', ')}');
+          throw Exception('Course not found: $courseId');
+        },
+      );
+      
+      _logger.i('找到课程: ${course['title']} (courseId: ${course['courseId']}, clazzId: ${course['clazzId']}, cpi: ${course['cpi']})');
+      
+      // 返回包含正确clazzId和cpi的课程信息
+      return {
+        'courseId': course['courseId'],
+        'clazzId': course['clazzId'],
+        'cpi': course['cpi'],
+        'title': course['title'],
+        'teacher': course['teacher'],
+      };
+    } catch (e) {
+      _logger.e('获取课程信息失败: $e');
+      rethrow;
+    }
   }
 
   /// Get chapter information
