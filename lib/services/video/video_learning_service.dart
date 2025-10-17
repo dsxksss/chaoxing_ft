@@ -523,7 +523,10 @@ class VideoLearningService {
         final dt = (currentTime - lastIter) * speed;
         lastIter = currentTime;
         // Python: play_time = min(duration, play_time+dt)
-        playTime = min(duration, playTime + dt.toInt());
+        final dtInt = dt.round(); // 使用round而不toInt避免精度损失
+        playTime = min(duration, playTime + dtInt);
+        
+        _logger.d('进度更新 - dt: ${dt.toStringAsFixed(2)}s, dtInt: ${dtInt}s, speed: ${speed}x, playTime: ${playTime}s');
         
         // 💡 更新playTime后，实时更新UI进度条（每秒更新）
         if (onProgress != null) {

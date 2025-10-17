@@ -31,6 +31,7 @@ class _CourseListPageState extends State<CourseListPage> {
   Map<String, dynamic>? _executionResults;
   String _currentTaskName = '';
   double _currentTaskProgress = 0.0;
+  double _playbackSpeed = 1.0; // 播放速度，默认1.0倍
   
   // 服务实例
   late final TaskExecutorService _taskExecutorService;
@@ -115,11 +116,11 @@ class _CourseListPageState extends State<CourseListPage> {
     });
 
     try {
-      // 使用任务执行服务执行所有任务
+      // 使用任务执行服务执行所有任务，传入用户配置的倍速
       final results = await _taskExecutorService.executeCourseTasks(
         courseId: _selectedCourseId!,
         tasks: _courseTasks,
-        speed: 1.0, // 默认播放速度
+        speed: _playbackSpeed, // 使用用户配置的播放速度
         notOpenAction: 'retry', // 默认重试模式
         onProgress: (taskName, progress) {
           if (mounted) {
@@ -328,6 +329,52 @@ class _CourseListPageState extends State<CourseListPage> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
+              // 倍速选择
+              Row(
+                children: [
+                  const Icon(Icons.speed, size: 20, color: Colors.blue),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '播放速度:',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // 1.0x 单选框
+                  Expanded(
+                    child: RadioListTile<double>(
+                      title: const Text('1.0x'),
+                      value: 1.0,
+                      groupValue: _playbackSpeed,
+                      onChanged: _isExecuting ? null : (value) {
+                        setState(() {
+                          _playbackSpeed = value!;
+                        });
+                      },
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  // 2.0x 单选框
+                  Expanded(
+                    child: RadioListTile<double>(
+                      title: const Text('2.0x'),
+                      value: 2.0,
+                      groupValue: _playbackSpeed,
+                      onChanged: _isExecuting ? null : (value) {
+                        setState(() {
+                          _playbackSpeed = value!;
+                        });
+                      },
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
