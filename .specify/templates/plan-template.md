@@ -17,21 +17,44 @@
   the iteration process.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: Dart 3.9.2+, Flutter 3.9.2+  
+**Primary Dependencies**: [e.g., dio, provider, shared_preferences, hive or NEEDS CLARIFICATION]  
+**Storage**: SharedPreferences/Hive for local data, SQLite for complex data  
+**Testing**: flutter_test, mockito, integration_test  
+**Target Platform**: Android 8.0+, iOS 12.0+, Windows 10+  
+**Project Type**: multi-platform mobile/desktop application  
+**Performance Goals**: App startup < 3s, page transition < 1s, video playback 60fps  
+**Constraints**: Memory usage optimization, network timeout < 5s, offline capability for cached content  
+**Scale/Scope**: Single user application, ~50 screens, ~10k LOC estimated
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+### Feature Replication Compliance
+- [ ] 功能是否完全复刻 chaoxing_py 项目？
+- [ ] 是否避免了模拟 API 或额外功能？
+- [ ] 是否保持了与原始项目相同的业务逻辑？
+
+### Multi-Platform Support
+- [ ] 功能是否支持 Android/iOS/Windows 三个平台？
+- [ ] 各平台功能是否保持一致？
+- [ ] 是否考虑了平台特定的性能要求？
+
+### API Fidelity
+- [ ] 是否使用真实的超星学习通 API？
+- [ ] 网络请求和数据处理是否与原始项目一致？
+- [ ] 是否避免了数据模拟或简化实现？
+
+### UI-Only Enhancement
+- [ ] 是否仅添加了 UI 相关功能？
+- [ ] 业务逻辑是否与 chaoxing_py 保持一致？
+- [ ] 是否避免了额外的功能扩展？
+
+### Test-Driven Development
+- [ ] 是否包含完整的测试计划？
+- [ ] 测试覆盖率是否达到 80% 以上？
+- [ ] 是否遵循 TDD 开发流程？
 
 ## Project Structure
 
@@ -48,51 +71,52 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
+lib/
+├── main.dart                    # Application entry point
+├── app/                         # Application configuration
+│   ├── app.dart
+│   └── routes.dart
+├── core/                        # Core utilities and constants
+│   ├── constants/
+│   ├── errors/
+│   ├── network/
+│   └── utils/
+├── data/                        # Data layer (API calls, local storage)
+│   ├── datasources/
+│   │   ├── local/
+│   │   └── remote/
 │   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
+│   └── repositories/
+├── domain/                      # Business logic layer
+│   ├── entities/
+│   ├── repositories/
+│   └── usecases/
+├── presentation/                # UI layer
 │   ├── pages/
-│   └── services/
-└── tests/
+│   ├── widgets/
+│   └── providers/
+└── services/                    # External services
+    ├── api/
+    ├── auth/
+    ├── storage/
+    └── notification/
 
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
+test/
+├── unit/                        # Unit tests
+├── widget/                      # Widget tests
+└── integration/                 # Integration tests
 
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+android/                         # Android platform code
+ios/                            # iOS platform code
+windows/                        # Windows platform code
+web/                            # Web platform code
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Flutter multi-platform application with clean architecture pattern. 
+The structure separates concerns into data, domain, and presentation layers, ensuring 
+testability and maintainability while supporting all target platforms.
 
 ## Complexity Tracking
 

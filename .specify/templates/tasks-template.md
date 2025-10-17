@@ -17,10 +17,10 @@ description: "Task list template for feature implementation"
 - Include exact file paths in descriptions
 
 ## Path Conventions
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- **Flutter multi-platform**: `lib/` for Dart code, `test/` for tests
+- **Platform-specific**: `android/`, `ios/`, `windows/`, `web/` for platform code
+- **Architecture layers**: `lib/data/`, `lib/domain/`, `lib/presentation/`
+- Paths shown below follow Flutter clean architecture pattern
 
 <!-- 
   ============================================================================
@@ -43,28 +43,31 @@ description: "Task list template for feature implementation"
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-**Purpose**: Project initialization and basic structure
+**Purpose**: Flutter project initialization and basic structure
 
-- [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+- [ ] T001 Create Flutter project structure per implementation plan
+- [ ] T002 Initialize Flutter project with required dependencies (dio, provider, shared_preferences)
+- [ ] T003 [P] Configure Flutter linting and formatting tools (analysis_options.yaml)
+- [ ] T004 [P] Setup platform-specific configurations (Android/iOS/Windows)
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
+**Purpose**: Core Flutter infrastructure that MUST be complete before ANY user story can be implemented
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-Examples of foundational tasks (adjust based on your project):
+Flutter-specific foundational tasks:
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T005 [P] Setup network layer with Dio (API client configuration)
+- [ ] T006 [P] Implement authentication service (login/logout/session management)
+- [ ] T007 [P] Create base data models and entities
+- [ ] T008 [P] Setup local storage (SharedPreferences/Hive)
+- [ ] T009 [P] Configure error handling and logging infrastructure
+- [ ] T010 [P] Setup state management (Provider/Riverpod)
+- [ ] T011 [P] Create base UI components and theme
+- [ ] T012 [P] Setup navigation and routing
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -80,17 +83,20 @@ Examples of foundational tasks (adjust based on your project):
 
 **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T013 [P] [US1] Unit test for [Entity] in test/unit/[entity]_test.dart
+- [ ] T014 [P] [US1] Widget test for [Widget] in test/widget/[widget]_test.dart
+- [ ] T015 [P] [US1] Integration test for [user journey] in test/integration/[feature]_test.dart
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
+- [ ] T016 [P] [US1] Create [Entity1] model in lib/data/models/[entity1].dart
+- [ ] T017 [P] [US1] Create [Entity2] model in lib/data/models/[entity2].dart
+- [ ] T018 [US1] Implement [Repository] in lib/data/repositories/[repository].dart (depends on T016, T017)
+- [ ] T019 [US1] Implement [UseCase] in lib/domain/usecases/[usecase].dart
+- [ ] T020 [US1] Create [Provider] in lib/presentation/providers/[provider].dart
+- [ ] T021 [US1] Implement [Page] UI in lib/presentation/pages/[page].dart
+- [ ] T022 [US1] Add validation and error handling
+- [ ] T023 [US1] Add logging for user story 1 operations
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 

@@ -1,0 +1,346 @@
+openapi: 3.0.0
+info:
+  title: Chaoxing Learning Platform API
+  description: API contracts for Chaoxing core logic implementation based on chaoxing_py
+  version: 1.0.0
+  contact:
+    name: Chaoxing Flutter Implementation
+    url: https://github.com/chaoxing_ft
+
+servers:
+  - url: https://passport2.chaoxing.com
+    description: Authentication server
+  - url: https://mooc2-ans.chaoxing.com
+    description: Course management server
+  - url: https://mooc1.chaoxing.com
+    description: Learning content server
+
+paths:
+  /fanyalogin:
+    post:
+      summary: User authentication
+      description: Authenticate user with encrypted credentials
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                fid:
+                  type: string
+                  example: "-1"
+                uname:
+                  type: string
+                  description: AES encrypted username
+                password:
+                  type: string
+                  description: AES encrypted password
+                refer:
+                  type: string
+                  example: "https%3A%2F%2Fi.chaoxing.com"
+                t:
+                  type: boolean
+                  example: true
+                forbidotherlogin:
+                  type: integer
+                  example: 0
+                validate:
+                  type: string
+                  example: ""
+                doubleFactorLogin:
+                  type: integer
+                  example: 0
+                independentId:
+                  type: integer
+                  example: 0
+      responses:
+        '200':
+          description: Authentication response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  msg:
+                    type: string
+                  url:
+                    type: string
+
+  /mooc2-ans/visit/courselistdata:
+    post:
+      summary: Get course list
+      description: Retrieve user's course list
+      tags:
+        - Courses
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                courseType:
+                  type: integer
+                  example: 1
+                courseFolderId:
+                  type: integer
+                  example: 0
+                query:
+                  type: string
+                  example: ""
+                superstarClass:
+                  type: integer
+                  example: 0
+      responses:
+        '200':
+          description: Course list HTML response
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /mooc2-ans/mycourse/studentcourse:
+    get:
+      summary: Get course chapters
+      description: Retrieve course chapters and tasks
+      tags:
+        - Courses
+      parameters:
+        - name: courseid
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: clazzid
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: cpi
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: ut
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "s"
+      responses:
+        '200':
+          description: Course chapters HTML response
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /ananas/job/document:
+    get:
+      summary: Complete document task
+      description: Mark document task as completed
+      tags:
+        - Tasks
+      parameters:
+        - name: jobid
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: knowledgeid
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: courseid
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: clazzid
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: jtoken
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: _dc
+          in: query
+          required: true
+          schema:
+            type: string
+            description: Timestamp
+      responses:
+        '200':
+          description: Document task completion response
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /ananas/modules/video/index.html:
+    get:
+      summary: Video task interface
+      description: Access video learning interface
+      tags:
+        - Tasks
+      parameters:
+        - name: v
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "2025-0725-1842"
+      responses:
+        '200':
+          description: Video player interface
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /ananas/modules/audio/index_new.html:
+    get:
+      summary: Audio task interface
+      description: Access audio learning interface
+      tags:
+        - Tasks
+      parameters:
+        - name: v
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "2025-0725-1842"
+      responses:
+        '200':
+          description: Audio player interface
+          content:
+            text/html:
+              schema:
+                type: string
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+          description: User's phone number
+        password:
+          type: string
+          description: User's password
+        uid:
+          type: string
+          description: User's unique identifier
+        lastLogin:
+          type: string
+          format: date-time
+        isAuthenticated:
+          type: boolean
+
+    Course:
+      type: object
+      properties:
+        courseId:
+          type: string
+        clazzId:
+          type: string
+        cpi:
+          type: string
+        title:
+          type: string
+        teacher:
+          type: string
+        school:
+          type: string
+        status:
+          type: string
+          enum: [notStarted, inProgress, completed, paused]
+
+    Chapter:
+      type: object
+      properties:
+        chapterId:
+          type: string
+        title:
+          type: string
+        index:
+          type: integer
+        status:
+          type: string
+          enum: [locked, open, inProgress, completed, closed]
+        hasFinished:
+          type: boolean
+        isOpen:
+          type: boolean
+
+    Task:
+      type: object
+      properties:
+        taskId:
+          type: string
+        jobId:
+          type: string
+        type:
+          type: string
+          enum: [video, document, quiz, reading]
+        title:
+          type: string
+        status:
+          type: string
+          enum: [pending, inProgress, completed, failed, skipped]
+        metadata:
+          type: object
+        retryCount:
+          type: integer
+
+    Question:
+      type: object
+      properties:
+        questionId:
+          type: string
+        questionText:
+          type: string
+        type:
+          type: string
+          enum: [singleChoice, multipleChoice, trueFalse, fillInBlank]
+        options:
+          type: array
+          items:
+            type: string
+        correctAnswer:
+          type: string
+        userAnswer:
+          type: string
+
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    UserAgent:
+      type: apiKey
+      in: header
+      name: User-Agent
+
+security:
+  - SessionCookie: []
+  - UserAgent: []
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Courses
+    description: Course and chapter management
+  - name: Tasks
+    description: Learning task completion

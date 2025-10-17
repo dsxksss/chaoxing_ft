@@ -1,0 +1,24 @@
+﻿# chaoxing_ft Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2025-10-16
+
+## Active Technologies
+- Dart 3.9.2+, Flutter 3.9.2+ + dio (HTTP client), provider (state management), shared_preferences (local storage), hive (complex data storage), mockito (testing) (002-chaoxing-core-logic)
+
+## Project Structure
+```
+src/
+tests/
+```
+
+## Commands
+# Add commands for Dart 3.9.2+, Flutter 3.9.2+
+
+## Code Style
+Dart 3.9.2+, Flutter 3.9.2+: Follow standard conventions
+
+## Recent Changes
+- 002-chaoxing-core-logic: Added Dart 3.9.2+, Flutter 3.9.2+ + dio (HTTP client), provider (state management), shared_preferences (local storage), hive (complex data storage), mockito (testing)
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->

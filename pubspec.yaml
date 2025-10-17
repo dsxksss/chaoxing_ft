@@ -34,6 +34,43 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  
+  # HTTP client for API requests
+  dio: ^5.4.0
+  
+  # State management
+  provider: ^6.1.1
+  
+  # Local storage
+  shared_preferences: ^2.2.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  
+  # JSON serialization
+  json_annotation: ^4.8.1
+  
+  # Encryption
+  encrypt: ^5.0.1
+  
+  # Logging
+  logger: ^2.0.2+1
+  
+  # Path provider
+  path_provider: ^2.1.2
+  
+  # Video player
+  video_player: ^2.8.2
+  
+  # Web view for document viewing
+  webview_flutter: ^4.4.2
+  
+  # Navigation routing
+  go_router: ^14.2.7
+  
+  # Equatable for value equality
+  equatable: ^2.0.5
+  crypto: ^3.0.6
+  html: ^0.15.6
 
 dev_dependencies:
   flutter_test:
@@ -45,6 +82,16 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  
+  # Testing
+  mockito: ^5.4.4
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1
+  hive_generator: ^2.0.1
+  
+  # Integration testing
+  integration_test:
+    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
