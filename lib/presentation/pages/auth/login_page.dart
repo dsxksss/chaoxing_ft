@@ -82,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
               
               // App title
               const Text(
-                '超星学习通',
+                '超星学习通刷课辅助程序 - saymiao',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 28,
