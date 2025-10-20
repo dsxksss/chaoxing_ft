@@ -88,8 +88,8 @@ flutter run -d android
 
 ## 📦 安装包下载
 
-- Windows (https://github.com/dsxksss/chaoxing_ft/releases/latest)
-- Android (https://github.com/dsxksss/chaoxing_ft/releases/latest)
+- Windows (https://github.com/dsxksss/chaoxing_ft/releases/download/v0.1/ChaoxingHelper_Setup_v1.0.0.exe)
+- Android (https://github.com/dsxksss/chaoxing_ft/releases/download/v0.1/ChaoxingHelper.apk)
 
 ## 编译安装包
 
